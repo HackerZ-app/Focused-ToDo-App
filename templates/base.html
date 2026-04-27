@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic To-Do List</title>
+    
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    
+    <!-- Theme Initialization Script (prevents flash of wrong theme) -->
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="/static/css/loader.css">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Smooth fade out animation for element removal */
+        .htmx-swapping {
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 300ms ease-out, transform 300ms ease-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 min-h-screen selection:bg-blue-500 selection:text-white transition-colors duration-300">
+    
+    <!-- Sticky Top Navigation Bar -->
+    <nav class="sticky top-0 z-50 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo / Brand -->
+                <div class="flex-shrink-0 flex items-center gap-2">
+                    <i class="fas fa-check-double text-blue-500 text-2xl"></i>
+                    <span class="font-bold text-xl tracking-tight text-slate-800 dark:text-white">ProdSuite</span>
+                </div>
+                
+                {% if current_user %}
+                <!-- Navigation Links -->
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="/" class="px-3 py-2 rounded-md text-sm font-medium {{ 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' if request.url.path == '/' else 'text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 transition-colors' }}">List</a>
+                        <a href="/board" class="px-3 py-2 rounded-md text-sm font-medium {{ 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' if request.url.path == '/board' else 'text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 transition-colors' }}">Board</a>
+                        <a href="/focus" class="px-3 py-2 rounded-md text-sm font-medium {{ 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' if request.url.path == '/focus' else 'text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 transition-colors' }}">Focus</a>
+                        <a href="/stats" class="px-3 py-2 rounded-md text-sm font-medium {{ 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' if request.url.path == '/stats' else 'text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 transition-colors' }}">Insights</a>
+                    </div>
+                </div>
+                
+                <!-- Right Side: User Profile & Controls -->
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-3 bg-slate-100 dark:bg-slate-700/50 p-1.5 pr-3 rounded-full border border-slate-200 dark:border-slate-600">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold shadow-inner relative shrink-0 text-sm">
+                            {{ current_user.username[0]|upper }}
+                            <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-slate-100 dark:border-slate-700 rounded-full animate-pulse"></span>
+                        </div>
+                        <div class="flex flex-col hidden sm:flex">
+                            <span class="text-xs font-bold text-slate-800 dark:text-white leading-tight">{{ current_user.username }}</span>
+                            {% set earned_badges = namespace(count=0) %}
+                            {% set thresholds = badge_thresholds | default([3, 5, 10, 20]) %}
+                            {% for threshold in thresholds %}
+                                {% if current_user.total_completed_tasks >= threshold %}
+                                    {% set earned_badges.count = earned_badges.count + 1 %}
+                                {% endif %}
+                            {% endfor %}
+                            <span class="text-[10px] font-medium text-slate-500 dark:text-slate-400 leading-tight">Badges: {{ earned_badges.count }}</span>
+                        </div>
+                    </div>
+                    
+                    <button id="theme-toggle" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-700/50 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors focus:outline-none">
+                        <i class="fas fa-sun hidden dark:block text-sm"></i>
+                        <i class="fas fa-moon block dark:hidden text-sm"></i>
+                    </button>
+                    
+                    <form action="/logout" method="POST" class="inline m-0 p-0">
+                        <button type="submit" class="w-9 h-9 rounded-full bg-red-50 dark:bg-red-500/10 flex items-center justify-center text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors focus:outline-none" title="Logout">
+                            <i class="fas fa-sign-out-alt text-sm"></i>
+                        </button>
+                    </form>
+                </div>
+                {% else %}
+                <div class="flex items-center gap-4">
+                    <button id="theme-toggle" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-700/50 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors focus:outline-none">
+                        <i class="fas fa-sun hidden dark:block text-sm"></i>
+                        <i class="fas fa-moon block dark:hidden text-sm"></i>
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="py-8 px-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <script>
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        
+        if(themeToggleBtn) {
+            themeToggleBtn.addEventListener('click', function() {
+                if (document.documentElement.classList.contains('dark')) {
+                    document.documentElement.classList.remove('dark');
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    document.documentElement.classList.add('dark');
+                    localStorage.setItem('theme', 'dark');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

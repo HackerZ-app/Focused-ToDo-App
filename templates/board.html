@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-slate-800 dark:text-white tracking-tight mb-2">Kanban Board</h1>
+            <p class="text-slate-500 dark:text-slate-400 text-sm">Visualize your workflow and progress.</p>
+        </div>
+    </div>
+
+    <!-- Board Container -->
+    <div id="board-container">
+        {% include 'board_columns.html' %}
+    </div>
+</div>
+{% endblock %}

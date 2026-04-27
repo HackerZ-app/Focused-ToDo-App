@@ -1,0 +1,47 @@
+<div id="gamification-dashboard" {% if oob %}hx-swap-oob="true"{% endif %} class="mb-8 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800/80 dark:to-slate-700/80 rounded-2xl border border-blue-100 dark:border-slate-600 shadow-sm flex flex-col gap-4">
+    <div class="flex justify-between items-center">
+        <div class="flex flex-col">
+            <span class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">Daily Streak</span>
+            <span class="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                {{ current_user.daily_streak }} <i class="fas fa-fire text-orange-500"></i>
+            </span>
+        </div>
+        <div class="flex flex-col text-right">
+            <span class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">Completed Tasks</span>
+            <span class="text-2xl font-bold text-slate-800 dark:text-white">{{ current_user.total_completed_tasks }}</span>
+        </div>
+    </div>
+    
+    {% set next_badge = namespace(value=badge_thresholds[-1], last=0) %}
+    {% for threshold in badge_thresholds %}
+        {% if current_user.total_completed_tasks < threshold and next_badge.value == badge_thresholds[-1] %}
+            {% set next_badge.value = threshold %}
+        {% endif %}
+        {% if current_user.total_completed_tasks >= threshold %}
+            {% set next_badge.last = threshold %}
+        {% endif %}
+    {% endfor %}
+    {% set progress = 100 %}
+    {% if current_user.total_completed_tasks < badge_thresholds[-1] %}
+        {% set progress = ((current_user.total_completed_tasks - next_badge.last) / (next_badge.value - next_badge.last) * 100) %}
+    {% endif %}
+    
+    <div>
+        <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+            <span>Progress to Next Badge</span>
+            <span>{{ current_user.total_completed_tasks }} / {{ next_badge.value }}</span>
+        </div>
+        <div class="w-full bg-slate-200 dark:bg-slate-600 rounded-full h-2.5 overflow-hidden">
+            <div class="bg-blue-500 h-2.5 rounded-full transition-all duration-500" style="width: {{ progress }}%"></div>
+        </div>
+    </div>
+    
+    <div class="flex justify-around mt-2">
+        {% for threshold in badge_thresholds %}
+            <div class="flex flex-col items-center gap-1 {{ 'opacity-100' if current_user.total_completed_tasks >= threshold else 'opacity-40 grayscale' }}">
+                <i class="fas fa-medal text-3xl {{ 'text-yellow-400' if current_user.total_completed_tasks >= threshold else 'text-slate-400' }}"></i>
+                <span class="text-xs font-bold text-slate-700 dark:text-slate-300">{{ threshold }}</span>
+            </div>
+        {% endfor %}
+    </div>
+</div>

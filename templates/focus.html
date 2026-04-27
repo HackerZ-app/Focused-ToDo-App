@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto flex flex-col items-center justify-center min-h-[70vh]">
+    <div class="text-center mb-10 w-full max-w-md">
+        <h1 class="text-4xl font-bold text-slate-800 dark:text-white tracking-tight mb-3">Focus Mode</h1>
+        <p class="text-slate-500 dark:text-slate-400">Select a task and stay in the zone for 25 minutes.</p>
+        
+        <div class="mt-8 relative">
+            <select id="task-select" class="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-inner text-center font-medium appearance-none">
+                <option value="" disabled selected>-- Select a task to focus on --</option>
+                {% for task in tasks %}
+                    <option value="{{ task.id }}">{{ task.title }} {{ '(' ~ task.priority ~ ' Priority)' }}</option>
+                {% endfor %}
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 dark:text-slate-400">
+                <i class="fas fa-chevron-down"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timer Display -->
+    <div class="relative flex items-center justify-center mb-12">
+        <div class="absolute inset-0 bg-blue-500 blur-[100px] opacity-20 dark:opacity-10 rounded-full"></div>
+        <div class="z-10 bg-white dark:bg-slate-800 rounded-[3rem] shadow-2xl border border-slate-100 dark:border-slate-700 p-12">
+            <h2 id="timer-display" class="text-8xl md:text-[9rem] font-mono font-bold text-slate-800 dark:text-white tracking-tighter leading-none">
+                25:00
+            </h2>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="flex items-center gap-4 z-10">
+        <button id="btn-start" class="bg-blue-600 hover:bg-blue-500 text-white font-medium px-8 py-4 rounded-2xl transition-all shadow-lg shadow-blue-500/30 active:scale-95 text-lg flex items-center gap-2">
+            <i class="fas fa-play"></i> Start
+        </button>
+        <button id="btn-pause" class="hidden bg-yellow-500 hover:bg-yellow-400 text-white font-medium px-8 py-4 rounded-2xl transition-all shadow-lg shadow-yellow-500/30 active:scale-95 text-lg flex items-center gap-2">
+            <i class="fas fa-pause"></i> Pause
+        </button>
+        <button id="btn-reset" class="bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-medium px-8 py-4 rounded-2xl transition-all shadow-md active:scale-95 text-lg flex items-center gap-2">
+            <i class="fas fa-undo"></i> Reset
+        </button>
+    </div>
+    
+    <!-- Hidden element for HTMX swap -->
+    <div id="htmx-target" class="hidden"></div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const timerDisplay = document.getElementById("timer-display");
+        const btnStart = document.getElementById("btn-start");
+        const btnPause = document.getElementById("btn-pause");
+        const btnReset = document.getElementById("btn-reset");
+        const taskSelect = document.getElementById("task-select");
+
+        let timerInterval;
+        let totalSeconds = 25 * 60; // 25 minutes
+        let isRunning = false;
+
+        function updateDisplay() {
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function completeSession() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            
+            // Audio alert
+            const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+            audio.play().catch(e => console.log("Audio play failed:", e));
+
+            alert("Focus session complete! Great work.");
+
+            const selectedTaskId = taskSelect.value;
+            if (selectedTaskId) {
+                // Trigger HTMX request to complete the task
+                htmx.ajax('PUT', `/tasks/${selectedTaskId}/status`, {
+                    values: { status: 'Done' },
+                    target: '#htmx-target',
+                    swap: 'innerHTML'
+                }).then(() => {
+                    // Remove option from select
+                    const option = taskSelect.querySelector(`option[value="${selectedTaskId}"]`);
+                    if (option) option.remove();
+                    taskSelect.value = "";
+                });
+            }
+            
+            resetTimer();
+        }
+
+        function startTimer() {
+            if (!isRunning) {
+                isRunning = true;
+                btnStart.classList.add("hidden");
+                btnPause.classList.remove("hidden");
+                
+                timerInterval = setInterval(() => {
+                    if (totalSeconds > 0) {
+                        totalSeconds--;
+                        updateDisplay();
+                    } else {
+                        completeSession();
+                    }
+                }, 1000);
+            }
+        }
+
+        function pauseTimer() {
+            if (isRunning) {
+                clearInterval(timerInterval);
+                isRunning = false;
+                btnPause.classList.add("hidden");
+                btnStart.classList.remove("hidden");
+            }
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            totalSeconds = 25 * 60;
+            updateDisplay();
+        }
+
+        btnStart.addEventListener("click", startTimer);
+        btnPause.addEventListener("click", pauseTimer);
+        btnReset.addEventListener("click", resetTimer);
+    });
+</script>
+{% endblock %}

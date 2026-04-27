@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <!-- Main App Container -->
+    <div class="max-w-xl mx-auto bg-white dark:bg-slate-800/80 backdrop-blur border border-slate-200 dark:border-slate-700 p-8 rounded-2xl shadow-xl dark:shadow-2xl transition-colors duration-300">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-slate-800 dark:text-white tracking-tight mb-2">Tasks</h1>
+            <p class="text-slate-500 dark:text-slate-400 text-sm">Stay organized, focused, and productive.</p>
+        </div>
+
+
+        <!-- Task Input Form -->
+        <form class="flex flex-col mb-8 gap-3"
+              hx-post="/tasks"
+              hx-target="#task-list"
+              hx-swap="afterbegin"
+              hx-on::after-request="this.reset()">
+            <div class="flex flex-col sm:flex-row gap-3">
+                <input type="text" 
+                       name="title" 
+                       required 
+                       placeholder="What needs to be done?"
+                       class="flex-1 min-w-0 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-inner">
+                <input type="datetime-local" 
+                       name="due_date"
+                       class="shrink-0 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-inner w-full sm:w-auto">
+                <button type="submit"
+                        class="shrink-0 bg-blue-600 hover:bg-blue-500 text-white font-medium px-6 py-3 rounded-xl transition-colors shadow-lg shadow-blue-500/20 active:scale-95 duration-200 flex items-center justify-center gap-2">
+                    <i class="fas fa-plus"></i> Add
+                </button>
+            </div>
+            <!-- Extra form inputs row (Priority & Tag) -->
+            <div class="flex flex-col sm:flex-row gap-3">
+                <select name="priority" class="shrink-0 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-inner text-sm">
+                    <option value="Low">Low Priority</option>
+                    <option value="Medium" selected>Medium Priority</option>
+                    <option value="High">High Priority</option>
+                </select>
+                <input type="text" 
+                       name="tag" 
+                       placeholder="Tag (e.g. Work, Study)"
+                       class="flex-1 min-w-0 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-inner text-sm">
+            </div>
+        </form>
+
+        <!-- Filter Pills placeholder (swapped by HTMX via task_list.html) -->
+        <div id="filter-pills" class="flex items-center gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide">
+            <!-- Loaded from task_list.html -->
+        </div>
+
+        <!-- Task List Container -->
+        <ul id="task-list" class="space-y-3 relative">
+            {% include 'task_list.html' %}
+        </ul>
+    </div>
+{% endblock %}

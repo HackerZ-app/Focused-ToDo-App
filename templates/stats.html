@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-slate-800 dark:text-white tracking-tight mb-2">Insights</h1>
+        <p class="text-slate-500 dark:text-slate-400 text-sm">Analyze your productivity and track your growth.</p>
+    </div>
+
+    <!-- Gamification Dashboard -->
+    {% include 'dashboard.html' %}
+
+    <!-- 30-Day Contribution Graph -->
+    <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden mt-8">
+        <div class="bg-slate-50 dark:bg-slate-900/50 px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+            <h2 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                <i class="fas fa-chart-line text-blue-500"></i> 30-Day Consistency
+            </h2>
+        </div>
+        <div class="p-8 flex flex-col items-center overflow-x-auto">
+            <div class="flex gap-2">
+                {% set dates = activity_dict.keys() | list %}
+                <!-- Week columns -->
+                {% for week in range(0, 30, 7) %}
+                    <div class="grid grid-rows-7 gap-2">
+                        {% for day in range(7) %}
+                            {% set day_idx = week + day %}
+                            {% if day_idx < 30 %}
+                                {% set date_str = dates[day_idx] %}
+                                {% set count = activity_dict[date_str] %}
+                                
+                                {% if count == 0 %}
+                                    {% set bg_class = 'bg-slate-100 dark:bg-slate-700' %}
+                                {% elif count == 1 %}
+                                    {% set bg_class = 'bg-green-200 dark:bg-green-900/60' %}
+                                {% elif count >= 2 and count <= 3 %}
+                                    {% set bg_class = 'bg-green-400 dark:bg-green-600' %}
+                                {% else %}
+                                    {% set bg_class = 'bg-green-600 dark:bg-green-500' %}
+                                {% endif %}
+
+                                <div class="w-4 h-4 rounded-sm {{ bg_class }} transition-transform hover:scale-125 cursor-pointer shadow-sm border border-black/5 dark:border-white/5" 
+                                     title="{{ date_str }}: {{ count }} task{% if count != 1 %}s{% endif %}">
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <div class="flex items-center gap-2 mt-6 text-xs text-slate-500 dark:text-slate-400">
+                <span>Less</span>
+                <div class="flex gap-1">
+                    <div class="w-3 h-3 rounded-sm bg-slate-100 dark:bg-slate-700"></div>
+                    <div class="w-3 h-3 rounded-sm bg-green-200 dark:bg-green-900/60"></div>
+                    <div class="w-3 h-3 rounded-sm bg-green-400 dark:bg-green-600"></div>
+                    <div class="w-3 h-3 rounded-sm bg-green-600 dark:bg-green-500"></div>
+                </div>
+                <span>More</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

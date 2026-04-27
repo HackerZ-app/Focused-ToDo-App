@@ -1,0 +1,38 @@
+<div id="filter-pills" hx-swap-oob="true" class="flex items-center gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide">
+    <button class="{{ 'bg-blue-600 text-white shadow-md' if not filter else 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700' }} px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 shrink-0"
+            hx-get="/"
+            hx-target="#task-list"
+            hx-swap="innerHTML"
+            hx-push-url="true">
+        All
+    </button>
+    <button class="{{ 'bg-red-500 text-white shadow-md' if filter == 'High' else 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700' }} px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 shrink-0 flex items-center gap-1.5"
+            hx-get="/?filter=High"
+            hx-target="#task-list"
+            hx-swap="innerHTML"
+            hx-push-url="true">
+        <div class="w-2 h-2 rounded-full bg-current"></div> High
+    </button>
+    <button class="{{ 'bg-yellow-500 text-white shadow-md' if filter == 'Medium' else 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700' }} px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 shrink-0 flex items-center gap-1.5"
+            hx-get="/?filter=Medium"
+            hx-target="#task-list"
+            hx-swap="innerHTML"
+            hx-push-url="true">
+        <div class="w-2 h-2 rounded-full bg-current"></div> Medium
+    </button>
+    <button class="{{ 'bg-slate-500 text-white shadow-md' if filter == 'Low' else 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700' }} px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 shrink-0 flex items-center gap-1.5"
+            hx-get="/?filter=Low"
+            hx-target="#task-list"
+            hx-swap="innerHTML"
+            hx-push-url="true">
+        <div class="w-2 h-2 rounded-full bg-current"></div> Low
+    </button>
+</div>
+
+{% if tasks %}
+    {% for task in tasks %}
+        {% include 'task.html' %}
+    {% endfor %}
+{% else %}
+    {% include 'empty.html' %}
+{% endif %}

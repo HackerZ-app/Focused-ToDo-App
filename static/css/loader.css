@@ -1,0 +1,178 @@
+:root {
+    --duration: 1.5s;
+    --container-size: 250px;
+    --box-size: 32px;
+    --box-border-radius: 15%;
+    --clr: #3b82f6; /* Tailwind blue-500 */
+}
+
+.dark {
+    --clr: #60a5fa; /* Tailwind blue-400 */
+}
+
+#loader-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: #0f172a; /* slate-900 */
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.loader {
+    width: var(--container-size);
+    height: var(--container-size);
+    position: relative;
+    transform-style: preserve-3d;
+    transform: rotateX(60deg) rotateZ(45deg); /* Isometric view */
+}
+
+.box {
+    width: var(--box-size);
+    height: var(--box-size);
+    position: absolute;
+    transform-style: preserve-3d;
+}
+
+/* Core styling for the box faces */
+.box > div {
+    --hover-depth: 0px;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: var(--clr);
+    top: 0;
+    left: 0;
+    border-radius: var(--box-border-radius);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+/* Position the faces to form a 3D cube */
+.box > div:nth-child(1) { transform: translateZ(var(--box-size)); } /* Top */
+.box > div:nth-child(2) { transform: rotateX(-90deg) translateY(calc(var(--box-size) / 2)) translateZ(calc(var(--box-size) / 2)); } /* Front */
+.box > div:nth-child(3) { transform: rotateY(90deg) translateX(calc(var(--box-size) / 2)) translateZ(calc(var(--box-size) / 2)); } /* Side */
+
+
+/* Map each box index (0-7) to its starting grid position and animations */
+.box0 { animation: box-move0 2.5s infinite ease-in-out, box-scale0 2.5s infinite ease-in-out; --x: 32px; --y: 32px; }
+.box1 { animation: box-move1 2.5s infinite ease-in-out, box-scale1 2.5s infinite ease-in-out; --x: 0px; --y: 32px; }
+.box2 { animation: box-move2 2.5s infinite ease-in-out, box-scale2 2.5s infinite ease-in-out; --x: -32px; --y: 32px; }
+.box3 { animation: box-move3 2.5s infinite ease-in-out, box-scale3 2.5s infinite ease-in-out; --x: -32px; --y: 0px; }
+.box4 { animation: box-move4 2.5s infinite ease-in-out, box-scale4 2.5s infinite ease-in-out; --x: -32px; --y: -32px; }
+.box5 { animation: box-move5 2.5s infinite ease-in-out, box-scale5 2.5s infinite ease-in-out; --x: 0px; --y: -32px; }
+.box6 { animation: box-move6 2.5s infinite ease-in-out, box-scale6 2.5s infinite ease-in-out; --x: 32px; --y: -32px; }
+.box7 { animation: box-move7 2.5s infinite ease-in-out, box-scale7 2.5s infinite ease-in-out; --x: 32px; --y: 0px; }
+
+.ground {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  animation: ground 2.5s infinite ease-in-out;
+}
+
+/* User's Keyframes */
+@keyframes box-move0 {
+  12% { transform: translate(var(--x), var(--y)); }
+  25%, 52% { transform: translate(0, 0); }
+  80% { transform: translate(0, -32px); }
+  90%, 100% { transform: translate(0, 188px); }
+}
+
+@keyframes box-scale0 {
+  6% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(0); }
+  14%, 100% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(1); }
+}
+
+@keyframes box-move1 {
+  16% { transform: translate(var(--x), var(--y)); }
+  29%, 52% { transform: translate(0, 0); }
+  80% { transform: translate(0, -32px); }
+  90%, 100% { transform: translate(0, 188px); }
+}
+
+@keyframes box-scale1 {
+  10% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(0); }
+  18%, 100% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(1); }
+}
+
+@keyframes box-move2 {
+  20% { transform: translate(var(--x), var(--y)); }
+  33%, 52% { transform: translate(0, 0); }
+  80% { transform: translate(0, -32px); }
+  90%, 100% { transform: translate(0, 188px); }
+}
+
+@keyframes box-scale2 {
+  14% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(0); }
+  22%, 100% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(1); }
+}
+
+@keyframes box-move3 {
+  24% { transform: translate(var(--x), var(--y)); }
+  37%, 52% { transform: translate(0, 0); }
+  80% { transform: translate(0, -32px); }
+  90%, 100% { transform: translate(0, 188px); }
+}
+
+@keyframes box-scale3 {
+  18% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(0); }
+  26%, 100% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(1); }
+}
+
+@keyframes box-move4 {
+  28% { transform: translate(var(--x), var(--y)); }
+  41%, 52% { transform: translate(0, 0); }
+  80% { transform: translate(0, -32px); }
+  90%, 100% { transform: translate(0, 188px); }
+}
+
+@keyframes box-scale4 {
+  22% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(0); }
+  30%, 100% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(1); }
+}
+
+@keyframes box-move5 {
+  32% { transform: translate(var(--x), var(--y)); }
+  45%, 52% { transform: translate(0, 0); }
+  80% { transform: translate(0, -32px); }
+  90%, 100% { transform: translate(0, 188px); }
+}
+
+@keyframes box-scale5 {
+  26% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(0); }
+  34%, 100% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(1); }
+}
+
+@keyframes box-move6 {
+  36% { transform: translate(var(--x), var(--y)); }
+  49%, 52% { transform: translate(0, 0); }
+  80% { transform: translate(0, -32px); }
+  90%, 100% { transform: translate(0, 188px); }
+}
+
+@keyframes box-scale6 {
+  30% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(0); }
+  38%, 100% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(1); }
+}
+
+@keyframes box-move7 {
+  40% { transform: translate(var(--x), var(--y)); }
+  53%, 52% { transform: translate(0, 0); }
+  80% { transform: translate(0, -32px); }
+  90%, 100% { transform: translate(0, 188px); }
+}
+
+@keyframes box-scale7 {
+  34% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(0); }
+  42%, 100% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(1); }
+}
+
+@keyframes ground {
+  0%, 65% { transform: rotateX(90deg) rotateY(0deg) translate(-48px, -120px) translateZ(100px) scale(0); }
+  75%, 90% { transform: rotateX(90deg) rotateY(0deg) translate(-48px, -120px) translateZ(100px) scale(1); }
+  100% { transform: rotateX(90deg) rotateY(0deg) translate(-48px, -120px) translateZ(100px) scale(0); }
+}
