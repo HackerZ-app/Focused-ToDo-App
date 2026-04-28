@@ -36,6 +36,9 @@
     <!-- Custom Styles -->
     <link rel="stylesheet" href="/static/css/loader.css">
     
+    <!-- Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -120,6 +123,12 @@
     </main>
 
     <script>
+        document.body.addEventListener("fire-confetti", function(evt) {
+            if (typeof confetti !== "undefined") {
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            }
+        });
+
         const themeToggleBtn = document.getElementById('theme-toggle');
         
         if(themeToggleBtn) {

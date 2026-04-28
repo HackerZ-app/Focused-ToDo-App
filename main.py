@@ -221,7 +221,10 @@ async def update_task_status(request: Request, task_id: int, status_val: str = F
         db.commit()
         
     tasks = db.query(models.Task).filter(models.Task.user_id == current_user.id).order_by(models.Task.id.desc()).all()
-    return templates.TemplateResponse(request=request, name="board_columns.html", context={"tasks": tasks, "now": datetime.now()})
+    response = templates.TemplateResponse(request=request, name="board_columns.html", context={"tasks": tasks, "now": datetime.now()})
+    if status_val == "Done" or (task and task.completed):
+        response.headers["HX-Trigger"] = "fire-confetti"
+    return response
 
 @app.post("/tasks", response_class=HTMLResponse)
 async def add_task(request: Request, title: str = Form(...), due_date: str = Form(None), priority: str = Form("Medium"), tag: str = Form(None), db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
@@ -272,7 +275,10 @@ async def toggle_task(request: Request, task_id: int, db: Session = Depends(get_
         task_html = templates.TemplateResponse(request=request, name="task.html", context={"task": task, "now": datetime.now()}).body.decode('utf-8')
         dashboard_html = templates.TemplateResponse(request=request, name="dashboard.html", context={"current_user": current_user, "badge_thresholds": badge_thresholds, "oob": True}).body.decode('utf-8')
         
-        return HTMLResponse(content=task_html + dashboard_html)
+        response = HTMLResponse(content=task_html + dashboard_html)
+        if task.completed:
+            response.headers["HX-Trigger"] = "fire-confetti"
+        return response
     return HTMLResponse(status_code=404)
 
 @app.delete("/tasks/{task_id}", response_class=HTMLResponse)

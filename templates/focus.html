@@ -19,6 +19,26 @@
         </div>
     </div>
 
+    <!-- Zen Mode Controls -->
+    <div class="mb-8 flex flex-col items-center gap-3">
+        <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Zen Mode</h3>
+        <div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 p-1.5 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm">
+            <button class="zen-btn px-4 py-2 rounded-full text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm transition-all focus:outline-none" data-sound="https://upload.wikimedia.org/wikipedia/commons/6/6e/Zero-project_-_02_-_The_rain_song_2_%28pure_piano_version%29.ogg">
+                🌧️ Rain
+            </button>
+            <button class="zen-btn px-4 py-2 rounded-full text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm transition-all focus:outline-none" data-sound="https://upload.wikimedia.org/wikipedia/commons/4/46/Kevin_MacLeod_-_The_Forest_and_the_Trees.ogg">
+                🌲 Forest
+            </button>
+            <button class="zen-btn px-4 py-2 rounded-full text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm transition-all focus:outline-none" data-sound="https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3">
+                🎧 Lo-Fi
+            </button>
+            <div class="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
+            <button id="zen-mute" class="px-4 py-2 rounded-full text-sm font-medium bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm transition-all focus:outline-none">
+                🔇 Mute
+            </button>
+        </div>
+    </div>
+
     <!-- Timer Display -->
     <div class="relative flex items-center justify-center mb-12">
         <div class="absolute inset-0 bg-blue-500 blur-[100px] opacity-20 dark:opacity-10 rounded-full"></div>
@@ -53,10 +73,42 @@
         const btnPause = document.getElementById("btn-pause");
         const btnReset = document.getElementById("btn-reset");
         const taskSelect = document.getElementById("task-select");
+        const zenBtns = document.querySelectorAll(".zen-btn");
+        const zenMute = document.getElementById("zen-mute");
 
         let timerInterval;
         let totalSeconds = 25 * 60; // 25 minutes
         let isRunning = false;
+        
+        let ambientAudio = new Audio();
+        ambientAudio.loop = true;
+
+        // Zen Mode Logic
+        function clearZenActive() {
+            zenBtns.forEach(btn => {
+                btn.classList.remove("bg-white", "dark:bg-slate-700", "shadow-sm", "text-slate-800", "dark:text-white");
+                btn.classList.add("text-slate-600", "dark:text-slate-400");
+            });
+            zenMute.classList.remove("bg-white", "dark:bg-slate-700", "shadow-sm", "text-slate-800", "dark:text-white");
+            zenMute.classList.add("text-slate-600", "dark:text-slate-400");
+        }
+
+        zenBtns.forEach(btn => {
+            btn.addEventListener("click", () => {
+                clearZenActive();
+                btn.classList.add("bg-white", "dark:bg-slate-700", "shadow-sm", "text-slate-800", "dark:text-white");
+                btn.classList.remove("text-slate-600", "dark:text-slate-400");
+                ambientAudio.src = btn.dataset.sound;
+                ambientAudio.play().catch(e => console.log("Audio play failed:", e));
+            });
+        });
+
+        zenMute.addEventListener("click", () => {
+            clearZenActive();
+            zenMute.classList.add("bg-white", "dark:bg-slate-700", "shadow-sm", "text-slate-800", "dark:text-white");
+            zenMute.classList.remove("text-slate-600", "dark:text-slate-400");
+            ambientAudio.pause();
+        });
 
         function updateDisplay() {
             const minutes = Math.floor(totalSeconds / 60);
@@ -72,7 +124,14 @@
             const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
             audio.play().catch(e => console.log("Audio play failed:", e));
 
-            alert("Focus session complete! Great work.");
+            if (typeof confetti !== "undefined") {
+                confetti({ particleCount: 200, spread: 90, origin: { y: 0.6 } });
+            }
+
+            // A short delay before the alert allows the confetti and audio to start
+            setTimeout(() => {
+                alert("Focus session complete! Great work.");
+            }, 100);
 
             const selectedTaskId = taskSelect.value;
             if (selectedTaskId) {
